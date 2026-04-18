@@ -1,80 +1,74 @@
 using UnityEngine;
 using TMPro;
-using UnityEngine.SceneManagement; // Потрібно для перезавантаження гри
+using UnityEngine.SceneManagement;
 
 public class DropController : MonoBehaviour
 {
     public Rigidbody2D rb;
     public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI hpText; // Сюди перетягнемо текст життів
+    public TextMeshProUGUI hpText;
     
+    public float shootForce = 15f; // Швидкість польоту стріли
     private int score = 0;
     private int cores = 3;
-    private bool isStopped = false;
-    private Vector3 startPosition;
+    private bool isFlying = false;
+    private Vector3 startPos;
 
     void Start()
     {
-        // Запам'ятовуємо, де м'яч був на початку
-        startPosition = transform.position;
+        startPos = transform.position;
+        rb.isKinematic = true; // Стріла "заморожена" на старті
         UpdateUI();
     }
 
     void Update()
     {
-        if (!isStopped && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
+        // Клік = постріл
+        if (!isFlying && cores > 0 && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
         {
-            StopObject();
+            Shoot();
         }
 
-        // Якщо життів 0 — натисни R для рестарту
-        if (cores <= 0 && Input.GetKeyDown(KeyCode.R))
+        if (cores <= 0 && Input.GetKeyDown(KeyCode.R)) SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    void Shoot()
+    {
+        isFlying = true;
+        rb.isKinematic = false;
+        rb.linearVelocity = Vector2.down * shootForce; // Летить строго вниз
+    }
+
+    // Метод зупинки при влучанні
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Platform")) // Переконайся, що у платформи тег "Platform"
         {
-            RestartGame();
+            StopAndReset();
+            score += 10;
+            UpdateUI();
         }
     }
 
-    void StopObject()
+    void StopAndReset()
     {
-        isStopped = true;
+        isFlying = false;
         rb.linearVelocity = Vector2.zero;
         rb.isKinematic = true;
-        
-        score += 10;
-        UpdateUI();
-        
-        // Через 1 секунду спавнимо новий м'яч (для наступної лаби), 
-        // а поки просто дамо можливість скинути позицію для тесту
-        Invoke("ResetBall", 1f);
+        transform.position = startPos;
     }
 
     public void LoseLife()
     {
         cores--;
         UpdateUI();
-        if (cores > 0) ResetBall();
-        else Debug.Log("GAME OVER. Press R to Restart");
-    }
-
-    void ResetBall()
-    {
-        isStopped = false;
-        rb.isKinematic = false;
-        transform.position = startPosition;
-        rb.linearVelocity = Vector2.zero;
+        if (cores > 0) StopAndReset();
     }
 
     void UpdateUI()
     {
-        if (scoreText != null) scoreText.text = "STABILITY: " + score + "%";
-        if (hpText != null) hpText.text = "CORES: " + cores;
-        
-        if (cores <= 0) hpText.text = "DEAD SECTOR (Press R)";
-    }
-
-    void RestartGame()
-    {
-        // Перезавантажує поточну сцену
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        scoreText.text = "ACCURACY: " + score + "%";
+        hpText.text = "ARROWS: " + cores;
+        if (cores <= 0) hpText.text = "OUT OF AMMO (R)";
     }
 }
