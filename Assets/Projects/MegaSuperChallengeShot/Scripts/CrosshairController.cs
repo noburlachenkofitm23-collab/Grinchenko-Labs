@@ -1,7 +1,7 @@
 using System;
 using Projects.MegaSuperChallengeShot.Scripts;
 using TMPro;
-using TMPro.EditorUtilities;
+// –ˇ‰ÓÍ Á EditorUtilities ¬»ƒ¿À≈ÕŒ
 using UnityEngine;
 
 public class CrosshairController : MonoBehaviour
@@ -22,7 +22,7 @@ public class CrosshairController : MonoBehaviour
     void Update()
     {
         Vector3 mousePosition = Input.mousePosition;
-        mousePosition.z = 0; // Set a fixed distance from the camera
+        mousePosition.z = 0; 
         Vector3 worldPosition = _main.ScreenToWorldPoint(mousePosition);
         worldPosition.z = 0;
         transform.position = worldPosition;
@@ -31,13 +31,13 @@ public class CrosshairController : MonoBehaviour
         {
             _currentShots--; 
             _text.text = $"{_currentShots}/{_maxShots}";
-           Collider2D[] colliders = Physics2D.OverlapPointAll(worldPosition, _target);
-           Debug.Log(colliders.Length);
-           for (int i = 0; i < colliders.Length; i++)
-           {
-               ScoreManager.Instance.AddScore();
-               Destroy(colliders[i].gameObject);
-           }
+            Collider2D[] colliders = Physics2D.OverlapPointAll(worldPosition, _target);
+            Debug.Log(colliders.Length);
+            for (int i = 0; i < colliders.Length; i++)
+            {
+                ScoreManager.Instance.AddScore();
+                Destroy(colliders[i].gameObject);
+            }
         }
 
         if (Input.GetKeyDown(KeyCode.Mouse1))
